@@ -31,6 +31,9 @@
 #   -m MODE, --mode MODE
 #     The rendering mode. Can be either markdown or gfm. Default: markdown
 #
+#   --gfm
+#     Use gfm mode (same as `--mode gfm`).
+#
 # SEE ALSO
 #   https://docs.github.com/en/rest/reference/markdown
 
@@ -86,6 +89,10 @@ main() {
       -c | --context)
         context="$2"
         shift 2
+        ;;
+      --gfm)
+        mode=gfm
+        shift
         ;;
       -h | --help)
         print_help "$1"
