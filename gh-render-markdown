@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
-# Usage: gh render-markdown [--mode=<MODE>] [--context=<CONTEXT>] <file1>[ <file2>...]
-#        echo '# markdown' | gh render-markdown
-#        gh render-markdown
+# Usage: gh render-markdown [options] <file1>[ <file2>...]
+#        gh render-markdown [options] < file
+#        echo '# markdown' | gh render-markdown [options]
+#        gh render-markdown [options] <<< '# markdown'
+#        gh render-markdown [options]
 #        # markdown from sdtin
 #        ^D
 #
@@ -9,6 +11,13 @@
 #   gh render-markdown -- render a markdown as an HTML page using GitHub
 #
 # SYNOPSIS
+#   gh render-markdown [options] <file1>[ <file2>...]
+#   gh render-markdown [options] < file
+#   echo '# markdown' | gh render-markdown [options]
+#   gh render-markdown [options] <<< '# markdown'
+#   gh render-markdown [options]
+#   # markdown from sdtin
+#   ^D
 #
 # DESCRIPTION
 #   Use GitHub's Markdown API to render a markdown document as an HTML page.
