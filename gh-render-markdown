@@ -1,35 +1,103 @@
 #!/usr/bin/env bash
-set -e
+# Usage: gh render-markdown [--mode=<MODE>] [--context=<CONTEXT>] <file1>[ <file2>...]
+#        echo '# markdown' | gh render-markdown
+#        gh render-markdown
+#        # markdown from sdtin
+#        ^D
+#
+# NAME
+#   gh render-markdown -- render a markdown as an HTML page using GitHub
+#
+# SYNOPSIS
+#
+# DESCRIPTION
+#   Use GitHub's Markdown API to render a markdown document as an HTML page.
+#
+# OPTIONS
+#   -c CONTEXT, --context CONTEXT
+#     The repository context to use when creating references in gfm mode. For
+#     example, setting context to octo-org/octo-repo will change the text #42
+#     into an HTML link to issue 42 in the octo-org/octo-repo repository.
+#
+#   -m MODE, --mode MODE
+#     The rendering mode. Can be either markdown or gfm. Default: markdown
+#
+# SEE ALSO
+#   https://docs.github.com/en/rest/reference/markdown
 
-echo "Hello gh-render-markdown!"
+if [[ "$DEBUG" ]]; then
+  export PS4='+ [${BASH_SOURCE##*/}:${LINENO}] '
+  set -x
+fi
 
-# Snippets to help get started:
+set -euo pipefail
 
-# Determine if an executable is in the PATH
-# if ! type -p ruby >/dev/null; then
-#   echo "Ruby not found on the system" >&2
-#   exit 1
-# fi
+# Echoes given args to STDERR
+#
+# $@ - args to pass to echo
+warn() {
+  echo "$@" >&2
+}
 
-# Pass arguments through to another command
-# gh issue list "$@" -R cli/cli
+# Prints help text from the top of this file
+#
+# $1 - h to show one line usage, otherwise print full help
+print_help() {
+  sed -ne '/^#/!q;s/^#$/# /;/^# /s/^# //p' < "$0" |
+    awk -v f="${1#-h}" '!f&&/^Usage:/||u{u=!/^\s*$/;if(!u)exit}u||f'
+}
 
-# Using the gh api command to retrieve and format information
-# QUERY='
-#   query($endCursor: String) {
-#     viewer {
-#       repositories(first: 100, after: $endCursor) {
-#         nodes {
-#           nameWithOwner
-#           stargazerCount
-#         }
-#       }
-#     }
-#   }
-# '
-# TEMPLATE='
-#   {{- range $repo := .data.viewer.repositories.nodes -}}
-#     {{- printf "name: %s - stargazers: %v\n" $repo.nameWithOwner $repo.stargazerCount -}}
-#   {{- end -}}
-# '
-# exec gh api graphql -f query="${QUERY}" --paginate --template="${TEMPLATE}"
+# Submits STDIN to GitHub's Markdown API.
+#
+# $1 - mode (gfm or markdown)
+# $2 - context (gfm only)
+render() {
+  local mode="$1" context="$2" text
+
+  text="$(cat)"
+
+  exec gh api \
+    -X POST \
+    -f text="$text" \
+    -f mode="$mode" \
+    -f context="$context" \
+    markdown
+}
+
+# Main program
+main() {
+  local mode=markdown context=""
+
+  while [[ "$#" -gt 0 ]]; do
+    case "$1" in
+      -m | --mode)
+        mode="$2"
+        shift 2
+        ;;
+      -c | --context)
+        context="$2"
+        shift 2
+        ;;
+      -h | --help)
+        print_help "$1"
+        return 0
+        ;;
+      --)
+        shift
+        break
+        ;;
+      -*)
+        warn "invalid option \`$1'"
+        return 1
+        ;;
+      *)
+        break
+        ;;
+    esac
+  done
+
+  cat "$@" | render "$mode" "$context"
+}
+
+# Away we go!
+main "$@"
