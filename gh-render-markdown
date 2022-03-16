@@ -8,7 +8,7 @@
 #        ^D
 #
 # NAME
-#   gh render-markdown -- render a markdown as an HTML page using GitHub
+#   gh render-markdown -- render markdown files as HTML page using GitHub
 #
 # SYNOPSIS
 #   gh render-markdown [options] <file1>[ <file2>...]
